@@ -63,7 +63,13 @@ class Batch():
         else:
             return False
 
-drug_smile_dict = np.load("/tmp/dnn/drug_smiles.npy", encoding="latin1").item()
+
+drug_smile_file = '/tmp/dnn/drug_smiles.npy'
+if drug_smile_file.exists():
+    print("File exist:" + drug_smile_file)
+
+drug_smile_dict = np.load(drug_smile_file).item()
+
 drug_cell_dict = np.load("/tmp/dnn/drug_cell.npy", encoding="latin1").item()
 cell_mut_dict = np.load("/tmp/dnn/cell_feature.npy", encoding="latin1").item()
 
