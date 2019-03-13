@@ -64,14 +64,10 @@ class Batch():
             return False
 
 
-drug_smile_file = '/tmp/dnn/drug_smiles.npy'
-if drug_smile_file.exists():
-    print("File exist:" + drug_smile_file)
 
-drug_smile_dict = np.load(drug_smile_file).item()
-
-drug_cell_dict = np.load("/tmp/dnn/drug_cell.npy", encoding="latin1").item()
-cell_mut_dict = np.load("/tmp/dnn/cell_feature.npy", encoding="latin1").item()
+drug_smile_dict = np.load('drug_smiles.npy').item()
+drug_cell_dict = np.load("drug_cell.npy", encoding="latin1").item()
+cell_mut_dict = np.load("cell_feature.npy", encoding="latin1").item()
 
 c_chars = drug_smile_dict["c_chars"]
 drug_names = drug_smile_dict["drug_names"]
