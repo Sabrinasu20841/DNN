@@ -63,8 +63,6 @@ class Batch():
         else:
             return False
 
-
-
 drug_smile_dict = np.load("data/drug_smiles.npy", encoding="latin1").item()
 drug_cell_dict = np.load("data/drug_cell.npy", encoding="latin1").item()
 cell_mut_dict = np.load("data/drug_feature.npy", encoding="latin1").item()

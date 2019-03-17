@@ -13,9 +13,11 @@ from dnn_data import *
 import os
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--batch_size', default=100, type=int, help='batch size')
-parser.add_argument('--train_steps', default=1000, type=int,
+parser.add_argument('--batch-size', default=100, type=int, help='batch size')
+parser.add_argument('--train-steps', default=1000, type=int,
                     help='number of training steps')
+parser.add_argument('--model-dir', default='/opt/ml/model', type=str,
+                    help='model home dir')
 
 def weight_variable(shape):
     initial = tf.truncated_normal(shape, stddev=0.1)
@@ -49,7 +51,7 @@ def Pearson(a, b):
     down = tf.multiply(tf.sqrt(real_var), tf.sqrt(pred_var))
     return tf.div(up, down)
 
-def dnn_model(features, labels, mode, params):
+def dnn_model():
     drug = tf.placeholder(tf.float32, shape=[None, 188, 28])
     cell = tf.placeholder(tf.float32, shape=[None, 735])
     scores = tf.placeholder(tf.float32, shape=[None, 1])
@@ -141,6 +143,9 @@ def dnn_model(features, labels, mode, params):
                 real_values, drug_smiles, cell_muts = train.mini_batch()
                 train_step.run(feed_dict={drug:drug_smiles, cell:cell_muts, scores:real_values, keep_prob:0.5})
                 step += 1
+                if epoch > 5:
+                    print("End of Calucation")
+                    exit()
         valid_loss, valid_r2, valid_p, valid_rmsr = sess.run([loss, r_square, pearson, rmsr], feed_dict={drug:valid_drugs, cell:valid_cells, scores:valid_values, keep_prob:1})
         print("epoch: %d, loss: %g r2: %g pearson: %g rmsr: %g" % (epoch, valid_loss, valid_r2, valid_p, valid_rmsr))
         epoch += 1
@@ -159,10 +164,14 @@ def dnn_model(features, labels, mode, params):
             output_file.write("%g,%g,%g,%g\n"%(test_loss, test_r2, test_p, test_rmsr))
             print("Saved!!!!!")
         output_file.close()
+        if epoch >100:
+            print ("End of Calucation")
+            exit()
         
 def main(argv):
     args = parser.parse_args(argv[1:])
 
+    dnn_model()
     # Fetch the data
     #(train_x, train_y), (test_x, test_y) = iris_data.load_data()
 
@@ -172,8 +181,8 @@ def main(argv):
         #my_feature_columns.append(tf.feature_column.numeric_column(key=key))
 
     # Build 2 hidden layer DNN with 10, 10 units respectively.
-    classifier = tf.estimator.Estimator(
-        model_fn=dnn_model
+    #classifier = tf.estimator.Estimator(
+    #    model_fn=dnn_model
         #params={
         #    'feature_columns': my_feature_columns,
         #    # Two hidden layers of 10 nodes each.
@@ -181,19 +190,19 @@ def main(argv):
         #    # The model must choose between 3 classes.
         #    'n_classes': 3,
         #}
-        )
+     #   )
 
     # Train the Model.
-    classifier.train(
-        #input_fn=lambda:iris_data.train_input_fn(train_x, train_y, args.batch_size),
-        steps=args.train_steps)
+    #classifier.train(
+    #    #input_fn=lambda:iris_data.train_input_fn(train_x, train_y, args.batch_size),
+    #    steps=args.train-steps)
 
     # Evaluate the model.
-    eval_result = classifier.evaluate(
+    #eval_result = classifier.evaluate(
         #input_fn=lambda:iris_data.eval_input_fn(test_x, test_y, args.batch_size)
-        )
+    #    )
 
-    print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
+    #print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
 
     # Generate predictions from the model
     #expected = ['Setosa', 'Versicolor', 'Virginica']
