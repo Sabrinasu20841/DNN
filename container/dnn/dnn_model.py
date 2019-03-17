@@ -14,7 +14,7 @@ import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch-size', default=100, type=int, help='batch size')
-parser.add_argument('--train-steps', default=1000, type=int,
+parser.add_argument('--train-steps', default=5, type=int,
                     help='number of training steps')
 parser.add_argument('--model-dir', default='/opt/ml/model', type=str,
                     help='model home dir')
@@ -129,6 +129,9 @@ def dnn_model():
     saver = tf.train.Saver(var_list=tf.trainable_variables())
     output_file = open("result_all/result_all.txt", "a")
 
+    tf.logging.info("End of Calucation")
+    print ("End of Calucation")
+    exit() 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         test_values, test_drugs, test_cells = test.whole_batch()
@@ -143,14 +146,17 @@ def dnn_model():
                 real_values, drug_smiles, cell_muts = train.mini_batch()
                 train_step.run(feed_dict={drug:drug_smiles, cell:cell_muts, scores:real_values, keep_prob:0.5})
                 step += 1
-                if epoch > 5:
-                    print("End of Calucation")
-                    exit()
         valid_loss, valid_r2, valid_p, valid_rmsr = sess.run([loss, r_square, pearson, rmsr], feed_dict={drug:valid_drugs, cell:valid_cells, scores:valid_values, keep_prob:1})
+        tf.logging.info("epoch: %d, loss: %g r2: %g pearson: %g rmsr: %g" % (epoch, valid_loss, valid_r2, valid_p, valid_rmsr))
         print("epoch: %d, loss: %g r2: %g pearson: %g rmsr: %g" % (epoch, valid_loss, valid_r2, valid_p, valid_rmsr))
         epoch += 1
+        if epoch >5:
+            tf.logging.info("End of Calucation")
+            print ("End of Calucation")
+            exit()
         if valid_loss < min_loss:
             test_loss, test_r2, test_p, test_rmsr = sess.run([loss, r_square, pearson, rmsr], feed_dict={drug:test_drugs, cell:test_cells, scores:test_values, keep_prob:1})
+            tf.logging.info("find best, loss: %g r2: %g pearson: %g rmsr: %g ******" % (test_loss, test_r2, test_p, test_rmsr))
             print("find best, loss: %g r2: %g pearson: %g rmsr: %g ******" % (test_loss, test_r2, test_p, test_rmsr))
             os.system("rm model_all/*")
             saver.save(sess, "./model_all/result.ckpt")
@@ -162,15 +168,15 @@ def dnn_model():
 
         if test_r2 > -2:
             output_file.write("%g,%g,%g,%g\n"%(test_loss, test_r2, test_p, test_rmsr))
+            tf.logging.info("Saved!!!!!")
             print("Saved!!!!!")
         output_file.close()
-        if epoch >100:
-            print ("End of Calucation")
-            exit()
+
         
 def main(argv):
     args = parser.parse_args(argv[1:])
-
+    tf.logging.set_verbosity(tf.logging.INFO)
+    tf.logging.info("Star main program")
     dnn_model()
     # Fetch the data
     #(train_x, train_y), (test_x, test_y) = iris_data.load_data()
